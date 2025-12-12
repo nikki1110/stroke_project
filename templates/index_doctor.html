@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Doctor Dashboard - Stroke Prediction</title>
+  <style>
+    /* ====== Body & Background ====== */
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(120deg, #d1c4e9, #b3e5fc);
+      background-size: 400% 400%;
+      animation: gradientMove 15s ease infinite;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding-top: 70px; /* navbar space */
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ====== Navbar ====== */
+    .navbar {
+      width: 100%;
+      background-color: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 50px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .navbar h2 { color: #6a1b9a; margin: 0; }
+    .navbar a { text-decoration: none; color: #444; margin-left: 25px; font-weight: 600; }
+    .navbar a:hover { color: #6a1b9a; }
+
+    /* ====== Card ====== */
+    .card {
+      background: #ffffff;
+      padding: 50px 60px;
+      border-radius: 20px;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+      margin: 40px auto;
+      width: 700px;
+      text-align: center;
+      animation: fadeIn 1s ease;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(20px);} 
+      to {opacity: 1; transform: translateY(0);}
+    }
+
+    h1 { color: #333; margin-bottom: 30px; }
+    label { display: block; margin-top: 15px; font-weight: bold; color: #555; }
+    input, select { width: 100%; padding: 12px; margin-top: 6px; border-radius: 8px; border: 1px solid #ccc; transition: all 0.3s; }
+    input:focus, select:focus { outline: none; border-color: #6a1b9a; box-shadow: 0 0 8px rgba(106, 27, 154, 0.2); }
+
+    /* ====== Buttons ====== */
+    button {
+      margin-top: 20px;
+      padding: 14px 25px;
+      background: linear-gradient(135deg, #6a1b9a, #ab47bc);
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      font-size: 16px;
+    }
+
+    button:hover {
+      transform: scale(1.03);
+      background: linear-gradient(135deg, #ab47bc, #6a1b9a);
+    }
+
+    /* ====== Result Alerts ====== */
+    .result {
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 12px;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      animation: popIn 0.5s ease;
+    }
+
+    @keyframes popIn { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+
+    .very-low { background-color: #4caf50; color: white; }
+    .low { background-color: #8bc34a; color: white; }
+    .medium { background-color: #ff9800; color: white; }
+    .high { background-color: #f44336; color: white; }
+    .very-high { background-color: #b71c1c; color: white; }
+    .alert-error { background-color: #d9534f; color: white; padding: 14px; border-radius: 12px; font-weight: 600; }
+
+    /* ====== Table ====== */
+    .table-container {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 30px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: white;
+      color: black;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+
+    /* ====== Footer ====== */
+    footer {
+      margin-top: auto;
+      background-color: white;
+      width: 100%;
+      text-align: center;
+      padding: 15px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      color: #555;
+    }
+    footer span { color: #6a1b9a; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<div class="navbar">
+  <h2>🩺 Stroke Risk Predictor (Doctor)</h2>
+  <div>
+    <a href="/">Home</a>
+    <a href="/tips">Tips</a>
+    <a href="/contact">Contact</a>
+  </div>
+</div>
+
+<div class="card">
+  <h1>Doctor Dashboard</h1>
+
+  <form method="post" action="/predict_doctor" enctype="multipart/form-data">
+    <label>Upload CSV (optional):</label>
+    <input type="file" name="file" accept=".csv">
+    <button type="submit">Predict for Patients</button>
+  </form>
+
+  <p style="margin-top:20px;">Or predict for a single patient:</p>
+  <a href="/predict_patient"><button type="button">Single Patient Prediction</button></a>
+
+  {% if result %}
+  <div class="result
+      {% if '❌' in result or '⚠️' in result %}alert-error
+      {% elif 'Very High' in result %}very-high
+      {% elif 'High' in result %}high
+      {% elif 'Medium' in result %}medium
+      {% elif 'Low' in result %}low
+      {% elif 'Very Low' in result %}very-low
+      {% else %}very-low{% endif %}">
+    {{ result }}
+  </div>
+  {% endif %}
+
+  {% if results %}
+  <h3 style="margin-top: 30px;">Batch Predictions</h3>
+  <div class="table-container">
+    <table>
+      <tr>
+        {% for key in results[0].keys() %}
+        <th>{{ key }}</th>
+        {% endfor %}
+      </tr>
+      {% for row in results %}
+      <tr>
+        {% for value in row.values() %}
+        <td>{{ value }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% endif %}
+</div>
+
+<footer>
+  © 2025 <span>Stroke Risk Prediction</span> | Stay aware, stay healthy ❤️
+</footer>
+
+</body>
+</html>

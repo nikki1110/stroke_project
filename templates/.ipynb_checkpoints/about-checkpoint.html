@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>About - Stroke Predictor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(120deg, #d1c4e9, #b3e5fc);
+      background-size: 400% 400%;
+      animation: gradientMove 15s ease infinite;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .navbar {
+      width: 100%;
+      background-color: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 50px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .navbar h2 { color: #6a1b9a; margin: 0; }
+    .navbar a {
+      text-decoration: none;
+      color: #444;
+      margin-left: 25px;
+      font-weight: 600;
+    }
+    .navbar a:hover { color: #6a1b9a; }
+
+    .card {
+      background: white;
+      padding: 40px 50px;
+      border-radius: 20px;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+      margin-top: 50px;
+      width: 700px;
+      animation: fadeIn 1s ease;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+
+    h1 { color: #333; text-align: center; }
+    p { color: #555; line-height: 1.6; font-size: 16px; }
+
+    footer {
+      margin-top: auto;
+      background-color: white;
+      width: 100%;
+      text-align: center;
+      padding: 15px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      color: #555;
+    }
+    footer span { color: #6a1b9a; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <h2>🩺 Stroke Risk Predictor</h2>
+    <div>
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/tips">Tips</a>
+      <a href="/contact">Contact</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h1>About the Stroke Risk Predictor</h1>
+    <p>
+      The Stroke Risk Predictor helps users understand their potential risk of stroke
+      based on health and lifestyle factors such as age, blood pressure, glucose level, and BMI.
+    </p>
+    <p>
+      This project was developed using <strong>Flask, Python, and Machine Learning</strong> models like
+      Random Forest, Decision Tree, and Logistic Regression. The goal is to spread awareness and
+      encourage people to make healthier choices.
+    </p>
+  </div>
+
+  <footer>
+    © 2025 <span>Stroke Risk Prediction</span> | Stay aware, stay healthy ❤️
+  </footer>
+</body>
+</html>
