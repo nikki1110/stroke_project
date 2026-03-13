@@ -5,7 +5,7 @@ import numpy as np
 
 app = Flask(__name__)
 
-# ------------------ Load models and columns ------------------
+#Load models and columns
 try:
     lr = joblib.load("model_lr.pkl")
     dt = joblib.load("model_dt.pkl")
@@ -18,7 +18,6 @@ except Exception as e:
     models = {}
     model_columns = []
 
-# ------------------ Map probability to risk ------------------
 def map_risk(prob):
     if prob < 0.05: return f"✅ Very Low Risk (Probability: {prob:.2f})"
     elif prob < 0.15: return f"✅ Low Risk (Probability: {prob:.2f})"
@@ -57,7 +56,7 @@ def make_prediction(data):
         prob = model.predict_proba(df)[0][1]
         risk_text = map_risk(prob)
 
-        # ------------------ Explainable AI Part ------------------
+        # Using Explainable AI 
         top_features = []
 
         if model_choice in ["Random Forest", "Decision Tree"]:
@@ -76,8 +75,8 @@ def make_prediction(data):
         return f"❌ Error: {e}", []
 
 
-# ------------------ Routes ------------------
-@app.route('/')
+# Routes 
+app.route('/')
 def landing():
     return render_template('landing.html')
 
@@ -93,7 +92,7 @@ def tips():
 def contact():
     return render_template('contact.html')
 
-# ------------------ Patient Prediction ------------------
+# Patient Prediction 
 @app.route('/predict', methods=['GET','POST'])
 @app.route('/predict_patient', methods=['GET','POST'])
 def predict_patient():
@@ -109,7 +108,7 @@ def predict_patient():
                        top_features=top_features)
 
 
-# ------------------ Doctor Prediction ------------------
+# Doctor Prediction 
 @app.route('/predict_doctor', methods=['GET','POST'])
 def predict_doctor():
     result = None
