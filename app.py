@@ -44,19 +44,37 @@ def make_prediction(data):
 
         df = pd.DataFrame([input_dict])
         df = pd.get_dummies(df)
+
         if model_columns:
             df = df.reindex(columns=model_columns, fill_value=0)
 
         model_choice = data.get('model','Random Forest')
         model = models.get(model_choice, models.get('Random Forest'))
+
         if not model:
-            return "❌ Model not loaded."
+            return "❌ Model not loaded.", []
 
         prob = model.predict_proba(df)[0][1]
-        return map_risk(prob)
+        risk_text = map_risk(prob)
+
+        # ------------------ Explainable AI Part ------------------
+        top_features = []
+
+        if model_choice in ["Random Forest", "Decision Tree"]:
+            importances = model.feature_importances_
+            indices = np.argsort(importances)[-3:][::-1]
+            top_features = [model_columns[i] for i in indices]
+
+        elif model_choice == "Logistic Regression":
+            coefs = model.coef_[0]
+            indices = np.argsort(np.abs(coefs))[-3:][::-1]
+            top_features = [model_columns[i] for i in indices]
+
+        return risk_text, top_features
 
     except Exception as e:
-        return f"❌ Error: {e}"
+        return f"❌ Error: {e}", []
+
 
 # ------------------ Routes ------------------
 @app.route('/')
@@ -81,10 +99,15 @@ def contact():
 def predict_patient():
     result = None
     form_data = {}
+    top_features = []
     if request.method == 'POST':
         form_data = request.form.to_dict()
-        result = make_prediction(request.form)
-    return render_template('index.html', result=result, form_data=form_data)
+        result, top_features = make_prediction(request.form)
+    return render_template('index.html',
+                       result=result,
+                       form_data=form_data,
+                       top_features=top_features)
+
 
 # ------------------ Doctor Prediction ------------------
 @app.route('/predict_doctor', methods=['GET','POST'])
