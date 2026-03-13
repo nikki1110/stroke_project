@@ -25,7 +25,7 @@ def map_risk(prob):
     elif prob < 0.50: return f"⚠️ High Risk (Probability: {prob:.2f})"
     else: return f"🚨 Very High Risk (Probability: {prob:.2f})"
 
-# ------------------ Prediction function ------------------
+# Prediction function
 def make_prediction(data):
     try:
         input_dict = {
