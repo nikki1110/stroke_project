@@ -10,21 +10,79 @@ try:
     lr = joblib.load("model_lr.pkl")
     dt = joblib.load("model_dt.pkl")
     rf = joblib.load("model_rf.pkl")
+    ensemble = joblib.load("model_ensemble.pkl")
+    scaler = joblib.load("scaler.pkl") 
     model_columns = joblib.load("model_columns.pkl")
-    models = {"Logistic Regression": lr, "Decision Tree": dt, "Random Forest": rf}
+    models = {"Ensemble": ensemble}
+    
 except Exception as e:
     print("Model loading error:", e)
-    lr = dt = rf = None
+    lr = dt = rf = ensemble = None
+    scaler = None
     models = {}
     model_columns = []
 
 # ------------------ Map probability to risk ------------------
 def map_risk(prob):
-    if prob < 0.05: return f"✅ Very Low Risk (Probability: {prob:.2f})"
-    elif prob < 0.15: return f"✅ Low Risk (Probability: {prob:.2f})"
-    elif prob < 0.30: return f"⚠️ Medium Risk (Probability: {prob:.2f})"
-    elif prob < 0.50: return f"⚠️ High Risk (Probability: {prob:.2f})"
-    else: return f"🚨 Very High Risk (Probability: {prob:.2f})"
+    if prob < 0.05:
+        return f"✅ Very Low Risk (Probability: {prob:.2f})"
+    elif prob < 0.15:
+        return f"✅ Low Risk (Probability: {prob:.2f})"
+    elif prob < 0.30:
+        return f"⚠️ Medium Risk (Probability: {prob:.2f})"
+    elif prob < 0.50:
+        return f"⚠️ High Risk (Probability: {prob:.2f})"
+    else:
+        return f"🚨 Very High Risk (Probability: {prob:.2f})"
+# ------------------ Format Feature Names ------------------
+def format_feature(feature):
+    if "_" in feature:
+        parts = feature.split("_")
+
+        if parts[0] == "gender":
+            return f"Gender: {parts[1]}"
+        elif parts[0] == "work":
+            return f"Work Type: {parts[-1]}"
+        elif parts[0] == "Residence":
+            return f"Residence: {parts[-1]}"
+        elif parts[0] == "smoking":
+            return f"Smoking Status: {' '.join(parts[2:])}"
+
+    mapping = {
+        "age": "Age",
+        "bmi": "BMI",
+        "avg_glucose_level": "Glucose Level",
+        "hypertension": "Hypertension",
+        "heart_disease": "Heart Disease"
+    }
+
+    return mapping.get(feature, feature)
+
+# ------------------ Recommendations ------------------
+def get_recommendations(risk_text):
+    if "Very Low" in risk_text or "Low" in risk_text:
+        return [
+            "Maintain a balanced diet",
+            "Exercise regularly",
+            "Continue healthy lifestyle habits"
+        ]
+
+    elif "Medium" in risk_text:
+        return [
+            "Monitor blood pressure regularly",
+            "Reduce sugar and salt intake",
+            "Increase physical activity"
+        ]
+
+    elif "High" in risk_text or "Very High" in risk_text:
+        return [
+            "Consult a doctor immediately",
+            "Control hypertension and glucose levels",
+            "Avoid smoking and alcohol",
+            "Maintain strict diet and exercise routine"
+        ]
+
+    return []
 
 # ------------------ Prediction function ------------------
 def make_prediction(data):
@@ -44,20 +102,39 @@ def make_prediction(data):
 
         df = pd.DataFrame([input_dict])
         df = pd.get_dummies(df)
+
         if model_columns:
             df = df.reindex(columns=model_columns, fill_value=0)
 
-        model_choice = data.get('model','Random Forest')
-        model = models.get(model_choice, models.get('Random Forest'))
-        if not model:
-            return "❌ Model not loaded."
+        # Apply scaling
+        df_scaled = scaler.transform(df) if scaler is not None else df
 
-        prob = model.predict_proba(df)[0][1]
-        return map_risk(prob)
+        # Use Ensemble Model
+        model = models.get("Ensemble")
+        if not model:
+            return "❌ Model not loaded.", [], []
+
+        prob = model.predict_proba(df_scaled)[0][1]
+        print("Probability:", prob)
+        risk_text = map_risk(prob)
+
+        # ------------------ Explainable AI ------------------
+        top_features = []
+        if rf is not None:
+            importances = rf.feature_importances_
+            indices = np.argsort(importances)[-3:][::-1]
+            top_features = [model_columns[i] for i in indices]
+
+        # Convert to readable names
+        top_features = [format_feature(f) for f in top_features]
+
+        # ------------------ Recommendations ------------------
+        recommendations = get_recommendations(risk_text)
+
+        return risk_text, top_features, recommendations
 
     except Exception as e:
-        return f"❌ Error: {e}"
-
+        return f"❌ Error: {e}", [], []
 # ------------------ Routes ------------------
 @app.route('/')
 def landing():
@@ -81,41 +158,66 @@ def contact():
 def predict_patient():
     result = None
     form_data = {}
+    top_features = []
+    recommendations = []
+
     if request.method == 'POST':
         form_data = request.form.to_dict()
-        result = make_prediction(request.form)
-    return render_template('index.html', result=result, form_data=form_data)
+        result, top_features, recommendations = make_prediction(request.form)
+
+    return render_template('index.html',
+                           result=result,
+                           form_data=form_data,
+                           top_features=top_features,
+                           recommendations=recommendations)
 
 # ------------------ Doctor Prediction ------------------
 @app.route('/predict_doctor', methods=['GET','POST'])
 def predict_doctor():
     result = None
     tables = None
+
     if request.method == 'POST':
         file = request.files.get('file')
+
         if file and file.filename != '':
             try:
                 df_csv = pd.read_csv(file)
+
                 if df_csv.empty:
                     result = "❌ CSV is empty."
                 else:
                     df_processed = pd.get_dummies(df_csv)
+
                     if model_columns:
                         df_processed = df_processed.reindex(columns=model_columns, fill_value=0)
 
                     tables = []
+
                     for idx in range(len(df_csv)):
                         row_result = {}
-                        for model_name, model in models.items():
-                            try:
-                                prob = model.predict_proba(df_processed.iloc[[idx]])[0][1]
-                                row_result[model_name+'_Prediction'] = map_risk(prob)
-                            except:
-                                row_result[model_name+'_Prediction'] = "❌ Could not predict"
+
+                        try:
+                            # Select a single row and ensure correct feature alignment
+                            row_df = df_processed.iloc[[idx]]
+                            row_df = row_df.reindex(columns=model_columns, fill_value=0)
+
+                            # Apply scaling if the scaler is available
+                            row_scaled = scaler.transform(row_df) if scaler is not None else row_df
+
+                            # Predict using the ensemble model
+                            prob = ensemble.predict_proba(row_scaled)[0][1]
+                            row_result['Ensemble_Prediction'] = map_risk(prob)
+
+                        except Exception:
+                            row_result['Ensemble_Prediction'] = "❌ Could not predict"
+
+                        # Combine original data with prediction
                         tables.append({**df_csv.iloc[idx].to_dict(), **row_result})
+
             except Exception as e:
                 result = f"❌ CSV Error: {e}"
-    return render_template('index_doctor.html', result=result, results=tables)
 
+    return render_template('index_doctor.html', result=result, results=tables)
 if __name__ == '__main__':
     app.run(debug=True)

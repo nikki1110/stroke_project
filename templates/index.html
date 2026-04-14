@@ -61,7 +61,6 @@
     }
     button:hover { transform: scale(1.03); background: linear-gradient(135deg, #ab47bc, #6a1b9a); }
 
-    /* ====== Inline error message ====== */
     .error-msg {
       color: #d9534f;
       font-size: 13px;
@@ -69,7 +68,6 @@
       display: none;
     }
 
-    /* ====== Result Alerts ====== */
     .result { margin-top: 30px; padding: 20px; border-radius: 12px; font-size: 20px; font-weight: bold; text-align: center; animation: popIn 0.5s ease; color: white; }
     @keyframes popIn { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
     .very-low { background-color: #4caf50; }    
@@ -97,75 +95,69 @@
 <div class="card">
   <h1>Predict Your Stroke Risk</h1>
 
-  <form method="post" action="/predict" id="patientForm">
-    <label>Age:</label>
-    <input type="number" name="age" step="0.1" required value="{{ form_data.age|default('') }}">
+ <form method="post" action="/predict" id="patientForm">
 
-    <label>Gender:</label>
-    <select name="gender">
-      <option {% if form_data.gender=='Female' %}selected{% endif %}>Female</option>
-      <option {% if form_data.gender=='Male' %}selected{% endif %}>Male</option>
-      <option {% if form_data.gender=='Other' %}selected{% endif %}>Other</option>
-    </select>
+  <label>Age:</label>
+  <input type="number" name="age" step="0.1" required value="{{ form_data.age|default('') }}">
 
-    <label>Hypertension:</label>
-    <select name="hypertension">
-      <option {% if form_data.hypertension=='No' %}selected{% endif %}>No</option>
-      <option {% if form_data.hypertension=='Yes' %}selected{% endif %}>Yes</option>
-    </select>
+  <label>Gender:</label>
+  <select name="gender">
+    <option {% if form_data.gender=='Female' %}selected{% endif %}>Female</option>
+    <option {% if form_data.gender=='Male' %}selected{% endif %}>Male</option>
+    <option {% if form_data.gender=='Other' %}selected{% endif %}>Other</option>
+  </select>
 
-    <label>Heart Disease:</label>
-    <select name="heart_disease">
-      <option {% if form_data.heart_disease=='No' %}selected{% endif %}>No</option>
-      <option {% if form_data.heart_disease=='Yes' %}selected{% endif %}>Yes</option>
-    </select>
+  <label>Hypertension:</label>
+  <select name="hypertension">
+    <option {% if form_data.hypertension=='No' %}selected{% endif %}>No</option>
+    <option {% if form_data.hypertension=='Yes' %}selected{% endif %}>Yes</option>
+  </select>
 
-    <label>Average Glucose Level:</label>
-    <input type="number" name="glucose" step="0.1" required value="{{ form_data.glucose|default('') }}">
-    <div id="glucoseError" class="error-msg">⚠️ Glucose should be between 1 and 600</div>
+  <label>Heart Disease:</label>
+  <select name="heart_disease">
+    <option {% if form_data.heart_disease=='No' %}selected{% endif %}>No</option>
+    <option {% if form_data.heart_disease=='Yes' %}selected{% endif %}>Yes</option>
+  </select>
 
-    <label>BMI:</label>
-    <input type="number" name="bmi" step="0.1" required value="{{ form_data.bmi|default('') }}">
-    <div id="bmiError" class="error-msg">⚠️ BMI should be between 0 and 100</div>
+  <label>Average Glucose Level:</label>
+  <input type="number" name="glucose" step="0.1" required value="{{ form_data.glucose|default('') }}">
+  <div id="glucoseError" class="error-msg">⚠️ Glucose should be between 1 and 600</div>
 
-    <label>Ever Married:</label>
-    <select name="ever_married">
-      <option {% if form_data.ever_married=='No' %}selected{% endif %}>No</option>
-      <option {% if form_data.ever_married=='Yes' %}selected{% endif %}>Yes</option>
-    </select>
+  <label>BMI:</label>
+  <input type="number" name="bmi" step="0.1" required value="{{ form_data.bmi|default('') }}">
+  <div id="bmiError" class="error-msg">⚠️ BMI should be between 0 and 100</div>
 
-    <label>Work Type:</label>
-    <select name="work_type">
-      <option {% if form_data.work_type=='Private' %}selected{% endif %}>Private</option>
-      <option {% if form_data.work_type=='Self-employed' %}selected{% endif %}>Self-employed</option>
-      <option {% if form_data.work_type=='Govt_job' %}selected{% endif %}>Govt_job</option>
-      <option {% if form_data.work_type=='children' %}selected{% endif %}>children</option>
-      <option {% if form_data.work_type=='Never_worked' %}selected{% endif %}>Never_worked</option>
-    </select>
+  <label>Ever Married:</label>
+  <select name="ever_married">
+    <option {% if form_data.ever_married=='No' %}selected{% endif %}>No</option>
+    <option {% if form_data.ever_married=='Yes' %}selected{% endif %}>Yes</option>
+  </select>
 
-    <label>Residence Type:</label>
-    <select name="residence_type">
-      <option {% if form_data.residence_type=='Urban' %}selected{% endif %}>Urban</option>
-      <option {% if form_data.residence_type=='Rural' %}selected{% endif %}>Rural</option>
-    </select>
+  <label>Work Type:</label>
+  <select name="work_type">
+    <option {% if form_data.work_type=='Private' %}selected{% endif %}>Private</option>
+    <option {% if form_data.work_type=='Self-employed' %}selected{% endif %}>Self-employed</option>
+    <option {% if form_data.work_type=='Govt_job' %}selected{% endif %}>Govt_job</option>
+    <option {% if form_data.work_type=='children' %}selected{% endif %}>children</option>
+    <option {% if form_data.work_type=='Never_worked' %}selected{% endif %}>Never_worked</option>
+  </select>
 
-    <label>Smoking Status:</label>
-    <select name="smoking_status">
-      <option {% if form_data.smoking_status=='never smoked' %}selected{% endif %}>never smoked</option>
-      <option {% if form_data.smoking_status=='formerly smoked' %}selected{% endif %}>formerly smoked</option>
-      <option {% if form_data.smoking_status=='smokes' %}selected{% endif %}>smokes</option>
-      <option {% if form_data.smoking_status=='Unknown' %}selected{% endif %}>Unknown</option>
-    </select>
+  <label>Residence Type:</label>
+  <select name="residence_type">
+    <option {% if form_data.residence_type=='Urban' %}selected{% endif %}>Urban</option>
+    <option {% if form_data.residence_type=='Rural' %}selected{% endif %}>Rural</option>
+  </select>
 
-    <label>Choose Model:</label>
-    <select name="model">
-      <option {% if form_data.model=='Random Forest' %}selected{% endif %}>Random Forest</option>
-      <option {% if form_data.model=='Decision Tree' %}selected{% endif %}>Decision Tree</option>
-      <option {% if form_data.model=='Logistic Regression' %}selected{% endif %}>Logistic Regression</option>
-    </select>
+  <label>Smoking Status:</label>
+  <select name="smoking_status">
+    <option {% if form_data.smoking_status=='never smoked' %}selected{% endif %}>never smoked</option>
+    <option {% if form_data.smoking_status=='formerly smoked' %}selected{% endif %}>formerly smoked</option>
+    <option {% if form_data.smoking_status=='smokes' %}selected{% endif %}>smokes</option>
+    <option {% if form_data.smoking_status=='Unknown' %}selected{% endif %}>Unknown</option>
+  </select>
 
-    <button type="submit">Predict</button>
-  </form>
+  <button type="submit">Predict</button>
+</form>
 
   {% if result %}
   <div class="result
@@ -178,33 +170,36 @@
       {% else %}very-low{% endif %}">
     {{ result }}
   </div>
+
+  {% if top_features %}
+  <div style="margin-top:20px; padding:18px; background:white; border-radius:12px; box-shadow:0 6px 12px rgba(0,0,0,0.08);">
+    <h3 style="margin-top:0; color:#6a1b9a;">🔍 Top Factors Influencing This Prediction</h3>
+    <ul style="padding-left:18px; color:#444; font-weight:500;">
+      {% for feature in top_features %}
+        <li>{{ feature }}</li>
+      {% endfor %}
+    </ul>
+  </div>
   {% endif %}
+
+  {% if recommendations %}
+  <div style="margin-top:20px; padding:18px; background:#f3e5f5; border-radius:12px;">
+    <h3 style="color:#6a1b9a;">💡 Recommendations</h3>
+    <ul style="padding-left:18px;">
+      {% for rec in recommendations %}
+        <li>{{ rec }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% endif %}  <!-- ✅ THIS WAS MISSING -->
+
 </div>
 
 <footer>
   © 2025 <span>Stroke Risk Prediction</span> | Stay aware, stay healthy ❤️
 </footer>
-
-<script>
-document.getElementById('patientForm').addEventListener('input', function() {
-  const bmi = parseFloat(this.bmi.value);
-  const glucose = parseFloat(this.glucose.value);
-  const bmiErr = document.getElementById('bmiError');
-  const gluErr = document.getElementById('glucoseError');
-
-  if (!isNaN(bmi) && (bmi < 0 || bmi > 100)) {
-    bmiErr.style.display = 'block';
-  } else {
-    bmiErr.style.display = 'none';
-  }
-
-  if (!isNaN(glucose) && (glucose < 1 || glucose > 600)) {
-    gluErr.style.display = 'block';
-  } else {
-    gluErr.style.display = 'none';
-  }
-});
-</script>
 
 </body>
 </html>
