@@ -171,7 +171,6 @@
     {{ result }}
   </div>
 
-  {% if top_features %}
   <div style="margin-top:20px; padding:18px; background:white; border-radius:12px; box-shadow:0 6px 12px rgba(0,0,0,0.08);">
     <h3 style="margin-top:0; color:#6a1b9a;">🔍 Top Factors Influencing This Prediction</h3>
     <ul style="padding-left:18px; color:#444; font-weight:500;">
@@ -180,6 +179,7 @@
       {% endfor %}
     </ul>
   </div>
+
   {% endif %}
 
   {% if recommendations %}

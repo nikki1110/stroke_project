@@ -5,7 +5,7 @@ import numpy as np
 
 app = Flask(__name__)
 
-# ------------------ Load models and columns ------------------
+#Load models and columns
 try:
     lr = joblib.load("model_lr.pkl")
     dt = joblib.load("model_dt.pkl")
@@ -22,7 +22,6 @@ except Exception as e:
     models = {}
     model_columns = []
 
-# ------------------ Map probability to risk ------------------
 def map_risk(prob):
     if prob < 0.05:
         return f"✅ Very Low Risk (Probability: {prob:.2f})"
@@ -84,7 +83,7 @@ def get_recommendations(risk_text):
 
     return []
 
-# ------------------ Prediction function ------------------
+# Prediction function
 def make_prediction(data):
     try:
         input_dict = {
@@ -106,6 +105,7 @@ def make_prediction(data):
         if model_columns:
             df = df.reindex(columns=model_columns, fill_value=0)
 
+<<<<<<< HEAD
         # Apply scaling
         df_scaled = scaler.transform(df) if scaler is not None else df
 
@@ -137,6 +137,38 @@ def make_prediction(data):
         return f"❌ Error: {e}", [], []
 # ------------------ Routes ------------------
 @app.route('/')
+=======
+        model_choice = data.get('model','Random Forest')
+        model = models.get(model_choice, models.get('Random Forest'))
+
+        if not model:
+            return "❌ Model not loaded.", []
+
+        prob = model.predict_proba(df)[0][1]
+        risk_text = map_risk(prob)
+
+        # Using Explainable AI 
+        top_features = []
+
+        if model_choice in ["Random Forest", "Decision Tree"]:
+            importances = model.feature_importances_
+            indices = np.argsort(importances)[-3:][::-1]
+            top_features = [model_columns[i] for i in indices]
+
+        elif model_choice == "Logistic Regression":
+            coefs = model.coef_[0]
+            indices = np.argsort(np.abs(coefs))[-3:][::-1]
+            top_features = [model_columns[i] for i in indices]
+
+        return risk_text, top_features
+
+    except Exception as e:
+        return f"❌ Error: {e}", []
+
+
+# Routes 
+app.route('/')
+>>>>>>> f9cc5cb7663bfea0b75bfad4065c862e1839bfa1
 def landing():
     return render_template('landing.html')
 
@@ -152,26 +184,15 @@ def tips():
 def contact():
     return render_template('contact.html')
 
-# ------------------ Patient Prediction ------------------
+# Patient Prediction 
 @app.route('/predict', methods=['GET','POST'])
 @app.route('/predict_patient', methods=['GET','POST'])
 def predict_patient():
     result = None
     form_data = {}
     top_features = []
-    recommendations = []
 
-    if request.method == 'POST':
-        form_data = request.form.to_dict()
-        result, top_features, recommendations = make_prediction(request.form)
-
-    return render_template('index.html',
-                           result=result,
-                           form_data=form_data,
-                           top_features=top_features,
-                           recommendations=recommendations)
-
-# ------------------ Doctor Prediction ------------------
+# Doctor Prediction 
 @app.route('/predict_doctor', methods=['GET','POST'])
 def predict_doctor():
     result = None
